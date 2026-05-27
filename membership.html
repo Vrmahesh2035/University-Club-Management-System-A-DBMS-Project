@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Add Membership{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h1 class="page-title">Add Membership</h1>
+  <a href="{{ url_for('clubs') }}" class="btn btn-sm">← Back</a>
+</div>
+
+<div class="card form-card">
+  <form method="POST">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Student *</label>
+        <select name="student_id" required>
+          <option value="">— Select Student —</option>
+          {% for s in students %}
+          <option value="{{ s.student_id }}">{{ s.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Club *</label>
+        <select name="club_id" required>
+          <option value="">— Select Club —</option>
+          {% for c in clubs %}
+          <option value="{{ c.club_id }}">{{ c.club_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Position *</label>
+        <select name="position_id" required>
+          {% for p in positions %}
+          <option value="{{ p.position_id }}">{{ p.position_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Join Date</label>
+        <input type="date" name="join_date" value="{{ today }}">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Add Membership</button>
+      <a href="{{ url_for('clubs') }}" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Reports & Analytics</h1>
+    <p class="page-sub">Data insights from the normalized database</p>
+  </div>
+</div>
+
+<div class="card mb no-print">
+  <div class="card-header"><h2 class="card-title">Student Report</h2></div>
+  <form method="GET" action="{{ url_for('reports') }}" class="report-form">
+    <div class="form-group">
+      <label for="student_id">Select student</label>
+      <select id="student_id" name="student_id" required>
+        <option value="">Choose a student</option>
+        {% for s in students %}
+        <option value="{{ s.student_id }}" {% if selected_student_id == s.student_id %}selected{% endif %}>
+          {{ s.name }} - {{ s.email }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="report-actions">
+      <button type="submit" class="btn btn-primary">Generate Report</button>
+      {% if selected_student %}
+      <button type="button" class="btn btn-outline" onclick="window.print()">Print / Save PDF</button>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+{% if selected_student %}
+<section class="student-report printable-report">
+  <div class="print-title">
+    <p class="print-kicker">University Club Management System</p>
+    <h2>Student Activity Report</h2>
+  </div>
+
+  <div class="card mb">
+    <div class="card-header">
+      <div>
+        <h2 class="card-title">{{ selected_student.first_name }} {{ selected_student.last_name }}</h2>
+        <p class="page-sub">{{ selected_student.dept_name }} ({{ selected_student.dept_code }})</p>
+      </div>
+      <button type="button" class="btn btn-sm btn-outline no-print" onclick="window.print()">Print / Save PDF</button>
+    </div>
+    <div class="report-summary">
+      <div class="report-stat">
+        <span class="report-stat-value">{{ student_summary.clubs }}</span>
+        <span class="report-stat-label">Total Clubs</span>
+      </div>
+      <div class="report-stat">
+        <span class="report-stat-value">{{ student_summary.active_clubs }}</span>
+        <span class="report-stat-label">Active Clubs</span>
+      </div>
+      <div class="report-stat">
+        <span class="report-stat-value">{{ student_summary.events }}</span>
+        <span class="report-stat-label">Events</span>
+      </div>
+      <div class="report-stat">
+        <span class="report-stat-value">{{ student_summary.attended }}</span>
+        <span class="report-stat-label">Attended</span>
+      </div>
+    </div>
+    <dl class="dl-grid student-report-profile">
+      <dt>Email</dt>   <dd class="mono">{{ selected_student.email }}</dd>
+      <dt>Phone</dt>   <dd class="mono">{{ selected_student.phone or '-' }}</dd>
+      <dt>Department</dt><dd>{{ selected_student.dept_name }}</dd>
+      <dt>Dean</dt>    <dd>{{ selected_student.faculty_dean }}</dd>
+      <dt>Year</dt>    <dd>{{ selected_student.enrollment_year }}</dd>
+    </dl>
+  </div>
+
+  <div class="two-col student-report-grid">
+    <div class="card mb">
+      <div class="card-header"><h2 class="card-title">Club Memberships</h2></div>
+      {% if student_memberships %}
+      <table class="table">
+        <thead><tr><th>Club</th><th>Role</th><th>Category</th><th>Status</th><th>Joined</th></tr></thead>
+        <tbody>
+        {% for m in student_memberships %}
+          <tr>
+            <td>{{ m.club_name }}</td>
+            <td><span class="badge">{{ m.position_name }}</span></td>
+            <td class="small">{{ m.category_name }}</td>
+            <td><span class="status-dot status-{{ m.status }}"></span> {{ m.status }}</td>
+            <td class="mono small">{{ m.join_date }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<p class="empty">Not a member of any club.</p>{% endif %}
+    </div>
+
+    <div class="card mb">
+      <div class="card-header"><h2 class="card-title">Event Participation</h2></div>
+      {% if student_registrations %}
+      <table class="table">
+        <thead><tr><th>Event</th><th>Club</th><th>Date</th><th>Venue</th><th>Attendance</th></tr></thead>
+        <tbody>
+        {% for r in student_registrations %}
+          <tr>
+            <td>{{ r.event_name }}</td>
+            <td class="small">{{ r.club_name }}</td>
+            <td class="mono small">{{ r.event_date }}</td>
+            <td class="small">{{ r.venue_name }}</td>
+            <td><span class="tag tag-{{ r.attendance_status }}">{{ r.attendance_status }}</span></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<p class="empty">No event registrations.</p>{% endif %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<div class="two-col">
+  <!-- Students per dept -->
+  <div class="card mb">
+    <div class="card-header"><h2 class="card-title">Students by Department</h2></div>
+    {% set max_d = dept_dist[0].cnt if dept_dist else 1 %}
+    {% for d in dept_dist %}
+    <div class="report-row">
+      <div class="report-label">{{ d.dept_name }}</div>
+      <div class="report-bar-wrap">
+        <div class="report-bar" style="width:{{ (d.cnt / max_d * 100)|int }}%"></div>
+        <span class="report-val">{{ d.cnt }}</span>
+      </div>
+    </div>
+    {% else %}<p class="empty">No data.</p>{% endfor %}
+  </div>
+
+  <!-- Members per club -->
+  <div class="card mb">
+    <div class="card-header"><h2 class="card-title">Members per Club</h2></div>
+    {% set max_c = club_members[0].cnt if club_members else 1 %}
+    {% for c in club_members %}
+    <div class="report-row">
+      <div class="report-label">{{ c.club_name }}</div>
+      <div class="report-bar-wrap">
+        <div class="report-bar" style="width:{{ (c.cnt / max_c * 100)|int if max_c > 0 else 0 }}%"></div>
+        <span class="report-val">{{ c.cnt }}</span>
+      </div>
+    </div>
+    {% else %}<p class="empty">No data.</p>{% endfor %}
+  </div>
+
+  <!-- Registrations per event -->
+  <div class="card mb">
+    <div class="card-header"><h2 class="card-title">Event Registrations</h2></div>
+    {% set max_e = event_reg[0].cnt if event_reg else 1 %}
+    {% for e in event_reg %}
+    <div class="report-row">
+      <div class="report-label">{{ e.event_name[:30] }}{% if e.event_name|length > 30 %}…{% endif %}</div>
+      <div class="report-bar-wrap">
+        <div class="report-bar report-bar-accent" style="width:{{ (e.cnt / max_e * 100)|int if max_e > 0 else 0 }}%"></div>
+        <span class="report-val">{{ e.cnt }}</span>
+      </div>
+    </div>
+    {% else %}<p class="empty">No data.</p>{% endfor %}
+  </div>
+
+  <!-- Clubs by category -->
+  <div class="card mb">
+    <div class="card-header"><h2 class="card-title">Clubs by Category</h2></div>
+    {% set max_cat = cat_dist|map(attribute='cnt')|max if cat_dist else 1 %}
+    {% for cat in cat_dist %}
+    <div class="report-row">
+      <div class="report-label">{{ cat.category_name }}</div>
+      <div class="report-bar-wrap">
+        <div class="report-bar report-bar-green" style="width:{{ (cat.cnt / max_cat * 100)|int if max_cat > 0 else 0 }}%"></div>
+        <span class="report-val">{{ cat.cnt }}</span>
+      </div>
+    </div>
+    {% else %}<p class="empty">No data.</p>{% endfor %}
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}{{ club.club_name }}{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ club.club_name }}</h1>
+    <p class="page-sub">{{ club.category_name }} &nbsp;·&nbsp; Est. {{ club.founded_year }}</p>
+  </div>
+  <div style="display:flex;gap:.5rem">
+    <a href="{{ url_for('edit_club', club_id=club.club_id) }}" class="btn btn-outline">Edit</a>
+    <a href="{{ url_for('clubs') }}" class="btn btn-sm">← Back</a>
+  </div>
+</div>
+
+<div class="two-col">
+  <div>
+    <!-- Club Info -->
+    <div class="card mb">
+      <div class="card-header"><h2 class="card-title">Details</h2></div>
+      <dl class="dl-grid">
+        <dt>Description</dt><dd>{{ club.description or '—' }}</dd>
+        <dt>Room</dt>       <dd>{{ club.room_number or '—' }}</dd>
+        <dt>Budget</dt>     <dd class="mono">₹{{ "{:,.2f}".format(club.budget) }}</dd>
+        <dt>Category</dt>   <dd>{{ club.category_name }}</dd>
+      </dl>
+    </div>
+
+    <!-- Advisors -->
+    <div class="card">
+      <div class="card-header"><h2 class="card-title">Advisors</h2></div>
+      {% if advisors %}
+      <table class="table">
+        <thead><tr><th>Name</th><th>Department</th><th>Email</th><th>Since</th></tr></thead>
+        <tbody>
+        {% for a in advisors %}
+          <tr>
+            <td>{{ a.first_name }} {{ a.last_name }}</td>
+            <td>{{ a.dept_name }}</td>
+            <td class="mono small">{{ a.email }}</td>
+            <td class="mono small">{{ a.assigned_date }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<p class="empty">No advisors assigned.</p>{% endif %}
+    </div>
+  </div>
+
+  <div>
+    <!-- Members -->
+    <div class="card mb">
+      <div class="card-header">
+        <h2 class="card-title">Members ({{ members|length }})</h2>
+        <a href="{{ url_for('add_membership') }}" class="btn btn-sm">+ Add</a>
+      </div>
+      {% if members %}
+      <table class="table">
+        <thead><tr><th>Student</th><th>Role</th><th>Dept</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for m in members %}
+          <tr>
+            <td>{{ m.first_name }} {{ m.last_name }}</td>
+            <td><span class="badge">{{ m.position_name }}</span></td>
+            <td class="small">{{ m.dept_name }}</td>
+            <td><span class="status-dot status-{{ m.status }}"></span> {{ m.status }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<p class="empty">No members yet.</p>{% endif %}
+    </div>
+
+    <!-- Events -->
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">Events</h2>
+        <a href="{{ url_for('add_event') }}" class="btn btn-sm">+ Event</a>
+      </div>
+      {% if events %}
+      <table class="table">
+        <thead><tr><th>Event</th><th>Date</th><th>Status</th><th>Reg.</th></tr></thead>
+        <tbody>
+        {% for e in events %}
+          <tr>
+            <td><a href="{{ url_for('event_detail', event_id=e.event_id) }}" class="link">{{ e.event_name }}</a></td>
+            <td class="mono small">{{ e.event_date }}</td>
+            <td><span class="tag tag-{{ e.status }}">{{ e.status }}</span></td>
+            <td>{{ e.registrations }}/{{ e.max_participants }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}<p class="empty">No events.</p>{% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

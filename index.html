@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h1 class="page-title">Dashboard</h1>
+  <p class="page-sub">University Club Management System</p>
+</div>
+
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-icon">◈</div>
+    <div class="stat-value">{{ stats.clubs }}</div>
+    <div class="stat-label">Active Clubs</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">◉</div>
+    <div class="stat-value">{{ stats.students }}</div>
+    <div class="stat-label">Students</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">◆</div>
+    <div class="stat-value">{{ stats.events }}</div>
+    <div class="stat-label">Events</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">★</div>
+    <div class="stat-value">{{ stats.members }}</div>
+    <div class="stat-label">Active Members</div>
+  </div>
+</div>
+
+<div class="two-col">
+  <!-- Upcoming Events -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Upcoming Events</h2>
+      <a href="{{ url_for('add_event') }}" class="btn btn-sm">+ Add</a>
+    </div>
+    {% if upcoming %}
+    <table class="table">
+      <thead><tr><th>Event</th><th>Date</th><th>Club</th><th>Venue</th></tr></thead>
+      <tbody>
+      {% for e in upcoming %}
+        <tr>
+          <td><strong>{{ e.event_name }}</strong></td>
+          <td class="mono">{{ e.event_date }}</td>
+          <td>{{ e.club_name }}</td>
+          <td>{{ e.venue_name }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="empty">No upcoming events.</p>
+    {% endif %}
+  </div>
+
+  <!-- Popular Clubs -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Top Clubs</h2>
+      <a href="{{ url_for('clubs') }}" class="btn btn-sm">View All</a>
+    </div>
+    {% if popular_clubs %}
+    <div class="club-bars">
+      {% set max_count = popular_clubs[0].member_count if popular_clubs[0].member_count > 0 else 1 %}
+      {% for c in popular_clubs %}
+      <div class="club-bar-row">
+        <div class="club-bar-label">
+          <a href="{{ url_for('clubs') }}" class="link-subtle">{{ c.club_name }}</a>
+          <span class="badge">{{ c.category_name }}</span>
+        </div>
+        <div class="club-bar-track">
+          <div class="club-bar-fill" style="width:{{ (c.member_count / max_count * 100)|int }}%"></div>
+          <span class="club-bar-count">{{ c.member_count }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty">No club data.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="card mt">
+  <div class="card-header"><h2 class="card-title">Quick Actions</h2></div>
+  <div class="action-grid">
+    <a href="{{ url_for('add_club') }}"       class="action-card">
+      <span class="action-icon">◈</span>
+      <span>New Club</span>
+    </a>
+    <a href="{{ url_for('add_student') }}"    class="action-card">
+      <span class="action-icon">◉</span>
+      <span>Add Student</span>
+    </a>
+    <a href="{{ url_for('add_event') }}"      class="action-card">
+      <span class="action-icon">◆</span>
+      <span>Create Event</span>
+    </a>
+    <a href="{{ url_for('add_membership') }}" class="action-card">
+      <span class="action-icon">⊕</span>
+      <span>Add Member</span>
+    </a>
+    <a href="{{ url_for('reports') }}"        class="action-card">
+      <span class="action-icon">▤</span>
+      <span>View Reports</span>
+    </a>
+    <a href="{{ url_for('normalization') }}"  class="action-card">
+      <span class="action-icon">⊞</span>
+      <span>NF Theory</span>
+    </a>
+  </div>
+</div>
+
+{% endblock %}

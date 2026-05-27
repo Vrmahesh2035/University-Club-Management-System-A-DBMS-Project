@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+{% block title %}Normal Forms{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h1 class="page-title">Database Normalization</h1>
+  <p class="page-sub">How this schema satisfies 1NF, 2NF, and 3NF</p>
+</div>
+
+<!-- 1NF -->
+<div class="card mb nf-card">
+  <div class="nf-badge nf-1">1NF</div>
+  <h2 class="nf-title">First Normal Form — Atomic Values</h2>
+  <p class="nf-def">A relation is in 1NF if every attribute contains only atomic (indivisible) values and every row is unique.</p>
+  <div class="nf-rules">
+    <div class="rule">✓ No repeating groups or arrays</div>
+    <div class="rule">✓ Each column holds a single value</div>
+    <div class="rule">✓ Every table has a Primary Key</div>
+    <div class="rule">✓ No multi-valued attributes</div>
+  </div>
+  <h3 class="nf-sub">Applied in this schema:</h3>
+  <table class="table nf-table">
+    <thead><tr><th>Table</th><th>1NF Compliance</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>students</code></td>
+        <td>Each student has ONE phone number (atomic), ONE email. No list of phones stored in one cell. Student-club relationships moved to <code>memberships</code>.</td>
+      </tr>
+      <tr>
+        <td><code>memberships</code></td>
+        <td>Each row = one (student, club) pair. A student in 3 clubs = 3 rows — not one row with a list of clubs.</td>
+      </tr>
+      <tr>
+        <td><code>event_registrations</code></td>
+        <td>Each registration is a separate atomic row with its own attendance_status. No comma-separated student lists.</td>
+      </tr>
+      <tr>
+        <td><code>club_advisor_assignments</code></td>
+        <td>Each advisor–club pair is a separate row. A club with 2 advisors = 2 rows.</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="nf-example">
+    <div class="bad-example">
+      <div class="ex-label bad">✗ Violates 1NF</div>
+      <code>students: (id=1, name="Arjun", clubs="Code Crafters, Debate Society")</code>
+    </div>
+    <div class="good-example">
+      <div class="ex-label good">✓ Satisfies 1NF</div>
+      <code>memberships: (student_id=1, club_id=1)<br>memberships: (student_id=1, club_id=7)</code>
+    </div>
+  </div>
+</div>
+
+<!-- 2NF -->
+<div class="card mb nf-card">
+  <div class="nf-badge nf-2">2NF</div>
+  <h2 class="nf-title">Second Normal Form — Full Functional Dependency</h2>
+  <p class="nf-def">A relation is in 2NF if it is in 1NF AND every non-key attribute is fully functionally dependent on the entire primary key (no partial dependencies).</p>
+  <div class="nf-rules">
+    <div class="rule">✓ Must already be in 1NF</div>
+    <div class="rule">✓ No partial dependencies on composite keys</div>
+    <div class="rule">✓ Each non-key attribute depends on the FULL PK</div>
+  </div>
+  <h3 class="nf-sub">Composite Keys and Partial Dependency Analysis:</h3>
+  <table class="table nf-table">
+    <thead><tr><th>Table</th><th>Composite Key</th><th>2NF Compliance</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>memberships</code></td>
+        <td><code>(student_id, club_id)</code></td>
+        <td><strong>join_date</strong> depends on BOTH (when did THIS student join THIS club). <strong>position_id</strong> depends on BOTH (a student can be President in one club, Member in another). <strong>status</strong> depends on BOTH. ✓ No partial deps.</td>
+      </tr>
+      <tr>
+        <td><code>event_registrations</code></td>
+        <td><code>(event_id, student_id)</code></td>
+        <td><strong>registration_date</strong> depends on BOTH (when did THIS student register for THIS event). <strong>attendance_status</strong> depends on BOTH. ✓ No partial deps.</td>
+      </tr>
+      <tr>
+        <td><code>club_advisor_assignments</code></td>
+        <td><code>(club_id, advisor_id)</code></td>
+        <td><strong>assigned_date</strong> depends on BOTH. ✓ No partial deps.</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="nf-example">
+    <div class="bad-example">
+      <div class="ex-label bad">✗ Violates 2NF (partial dependency)</div>
+      <code>memberships(student_id, club_id, student_name, club_budget)<br>
+      — student_name depends only on student_id (partial dep!)<br>
+      — club_budget depends only on club_id (partial dep!)</code>
+    </div>
+    <div class="good-example">
+      <div class="ex-label good">✓ Satisfies 2NF</div>
+      <code>memberships(student_id, club_id, position_id, join_date, status)<br>
+      — All attributes depend on the FULL composite key.</code>
+    </div>
+  </div>
+</div>
+
+<!-- 3NF -->
+<div class="card nf-card">
+  <div class="nf-badge nf-3">3NF</div>
+  <h2 class="nf-title">Third Normal Form — No Transitive Dependencies</h2>
+  <p class="nf-def">A relation is in 3NF if it is in 2NF AND no non-key attribute is transitively dependent on the primary key through another non-key attribute.</p>
+  <div class="nf-rules">
+    <div class="rule">✓ Must already be in 2NF</div>
+    <div class="rule">✓ No transitive dependencies (A→B→C where A is PK)</div>
+    <div class="rule">✓ Non-key attributes depend ONLY on the primary key</div>
+  </div>
+  <h3 class="nf-sub">Transitive Dependencies Removed:</h3>
+  <table class="table nf-table">
+    <thead><tr><th>Transitive Chain Eliminated</th><th>How</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>student_id → dept_id → dept_name, faculty_dean</code></td>
+        <td><strong>dept_name</strong> and <strong>faculty_dean</strong> are in the <code>departments</code> table. <code>students</code> stores only <code>dept_id</code> (FK). No transitive dep in students.</td>
+      </tr>
+      <tr>
+        <td><code>club_id → category_id → category_name, description</code></td>
+        <td>Club category metadata lives in <code>club_categories</code>. <code>clubs</code> stores only <code>category_id</code> (FK).</td>
+      </tr>
+      <tr>
+        <td><code>membership_id → position_id → position_name, description</code></td>
+        <td>Position metadata lives in <code>positions</code>. <code>memberships</code> stores only <code>position_id</code> (FK).</td>
+      </tr>
+      <tr>
+        <td><code>event_id → venue_id → capacity, location</code></td>
+        <td>Venue details live in <code>venues</code>. <code>events</code> stores only <code>venue_id</code> (FK). No transitive dep.</td>
+      </tr>
+      <tr>
+        <td><code>advisor_id → dept_id → dept_name</code></td>
+        <td>Advisor's department is in <code>departments</code>. <code>advisors</code> stores only <code>dept_id</code>.</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="nf-example">
+    <div class="bad-example">
+      <div class="ex-label bad">✗ Violates 3NF (transitive dependency)</div>
+      <code>events(event_id, event_name, venue_id, venue_name, venue_capacity)<br>
+      — event_id → venue_id → venue_name (transitive!)<br>
+      — event_id → venue_id → venue_capacity (transitive!)</code>
+    </div>
+    <div class="good-example">
+      <div class="ex-label good">✓ Satisfies 3NF</div>
+      <code>events(event_id, event_name, venue_id, …)<br>
+      venues(venue_id, venue_name, capacity, location)<br>
+      — venue_name and capacity depend directly on venue_id (their own PK).</code>
+    </div>
+  </div>
+</div>
+
+<!-- Schema diagram -->
+<div class="card mt">
+  <div class="card-header"><h2 class="card-title">Schema Overview</h2></div>
+  <div class="schema-diagram">
+    <div class="schema-table">
+      <div class="st-name">departments</div>
+      <div class="st-pk">PK: dept_id</div>
+      <div class="st-col">dept_name, dept_code, faculty_dean</div>
+    </div>
+    <div class="schema-table">
+      <div class="st-name">students</div>
+      <div class="st-pk">PK: student_id</div>
+      <div class="st-col">first_name, last_name, email, phone</div>
+      <div class="st-fk">FK: dept_id → departments</div>
+    </div>
+    <div class="schema-table">
+      <div class="st-name">clubs</div>
+      <div class="st-pk">PK: club_id</div>
+      <div class="st-col">club_name, founded_year, room_number, budget</div>
+      <div class="st-fk">FK: category_id → club_categories</div>
+    </div>
+    <div class="schema-table">
+      <div class="st-name">memberships</div>
+      <div class="st-pk">PK: membership_id | CK: (student_id, club_id)</div>
+      <div class="st-col">join_date, status</div>
+      <div class="st-fk">FK: student_id → students<br>FK: club_id → clubs<br>FK: position_id → positions</div>
+    </div>
+    <div class="schema-table">
+      <div class="st-name">events</div>
+      <div class="st-pk">PK: event_id</div>
+      <div class="st-col">event_name, event_date, event_time, max_participants, status</div>
+      <div class="st-fk">FK: club_id → clubs<br>FK: venue_id → venues</div>
+    </div>
+    <div class="schema-table">
+      <div class="st-name">event_registrations</div>
+      <div class="st-pk">PK: registration_id | CK: (event_id, student_id)</div>
+      <div class="st-col">registration_date, attendance_status</div>
+      <div class="st-fk">FK: event_id → events<br>FK: student_id → students</div>
+    </div>
+    <div class="schema-table">
+      <div class="st-name">venues</div>
+      <div class="st-pk">PK: venue_id</div>
+      <div class="st-col">venue_name, capacity, location</div>
+    </div>
+    <div class="schema-table">
+      <div class="st-name">positions</div>
+      <div class="st-pk">PK: position_id</div>
+      <div class="st-col">position_name, description</div>
+    </div>
+    <div class="schema-table">
+      <div class="st-name">advisors</div>
+      <div class="st-pk">PK: advisor_id</div>
+      <div class="st-col">first_name, last_name, email</div>
+      <div class="st-fk">FK: dept_id → departments</div>
+    </div>
+    <div class="schema-table">
+      <div class="st-name">club_advisor_assignments</div>
+      <div class="st-pk">PK: (club_id, advisor_id)</div>
+      <div class="st-col">assigned_date</div>
+      <div class="st-fk">FK: club_id → clubs<br>FK: advisor_id → advisors</div>
+    </div>
+    <div class="schema-table">
+      <div class="st-name">club_categories</div>
+      <div class="st-pk">PK: category_id</div>
+      <div class="st-col">category_name, description</div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

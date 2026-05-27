@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit' if edit else 'Add' }} Club{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <h1 class="page-title">{{ 'Edit Club' if edit else 'New Club' }}</h1>
+  <a href="{{ url_for('clubs') }}" class="btn btn-sm">← Back</a>
+</div>
+
+<div class="card form-card">
+  <form method="POST">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Club Name *</label>
+        <input type="text" name="club_name" required value="{{ club.club_name if club else '' }}" placeholder="e.g. Robotics Arena">
+      </div>
+      <div class="form-group">
+        <label>Category *</label>
+        <select name="category_id" required>
+          <option value="">— Select Category —</option>
+          {% for cat in categories %}
+          <option value="{{ cat.category_id }}" {{ 'selected' if club and club.category_id == cat.category_id else '' }}>{{ cat.category_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Founded Year *</label>
+        <input type="number" name="founded_year" required min="1900" max="2025"
+               value="{{ club.founded_year if club else '2024' }}">
+      </div>
+      <div class="form-group">
+        <label>Room Number</label>
+        <input type="text" name="room_number" value="{{ club.room_number if club else '' }}" placeholder="e.g. C-101">
+      </div>
+      <div class="form-group">
+        <label>Budget (₹)</label>
+        <input type="number" name="budget" step="0.01" value="{{ club.budget if club else '0' }}">
+      </div>
+      <div class="form-group full">
+        <label>Description</label>
+        <textarea name="description" rows="3" placeholder="Brief description of the club...">{{ club.description if club else '' }}</textarea>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">{{ 'Update Club' if edit else 'Create Club' }}</button>
+      <a href="{{ url_for('clubs') }}" class="btn btn-outline">Cancel</a>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

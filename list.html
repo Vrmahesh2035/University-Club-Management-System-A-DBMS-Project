@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Clubs{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Clubs</h1>
+    <p class="page-sub">All registered university clubs</p>
+  </div>
+  <a href="{{ url_for('add_club') }}" class="btn btn-primary">+ New Club</a>
+</div>
+
+<div class="card-grid">
+  {% for c in clubs %}
+  <div class="club-card">
+    <div class="club-card-top">
+      <div class="club-category-badge">{{ c.category_name }}</div>
+      <div class="club-budget">₹{{ "{:,.0f}".format(c.budget) }}</div>
+    </div>
+    <h3 class="club-card-name">{{ c.club_name }}</h3>
+    <p class="club-card-desc">{{ c.description[:80] if c.description else 'No description.' }}{% if c.description and c.description|length > 80 %}…{% endif %}</p>
+    <div class="club-card-meta">
+      <span>🗓 {{ c.founded_year }}</span>
+      <span>👥 {{ c.member_count }}</span>
+      <span>◆ {{ c.event_count }}</span>
+      {% if c.room_number %}<span>🚪 {{ c.room_number }}</span>{% endif %}
+    </div>
+    <div class="club-card-actions">
+      <a href="{{ url_for('club_detail', club_id=c.club_id) }}" class="btn btn-sm">View</a>
+      <a href="{{ url_for('edit_club', club_id=c.club_id) }}"   class="btn btn-sm btn-outline">Edit</a>
+      <form action="{{ url_for('delete_club', club_id=c.club_id) }}" method="POST" style="display:inline"
+            onsubmit="return confirm('Delete this club?')">
+        <button class="btn btn-sm btn-danger">Del</button>
+      </form>
+    </div>
+  </div>
+  {% else %}
+  <p class="empty">No clubs found. <a href="{{ url_for('add_club') }}">Add one.</a></p>
+  {% endfor %}
+</div>
+
+{% endblock %}
